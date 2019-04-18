@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_firebase_login/user_repository.dart';
-import 'package:flutter_firebase_login/forms/forms.dart';
+import 'package:flutter_firebase_login/login/login.dart';
 
 class LoginForm extends StatefulWidget {
   final UserRepository _userRepository;
@@ -25,7 +25,7 @@ class _LoginFormState extends State<LoginForm> {
   bool get isPopulated =>
       _emailController.text.isNotEmpty && _passwordController.text.isNotEmpty;
 
-  bool isLoginButtonEnabled(MyFormState state) {
+  bool isLoginButtonEnabled(LoginState state) {
     return state.isFormValid && isPopulated && !state.isSubmitting;
   }
 
@@ -41,7 +41,7 @@ class _LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     return BlocListener(
       bloc: _loginBloc,
-      listener: (BuildContext context, MyFormState state) {
+      listener: (BuildContext context, LoginState state) {
         if (state.isFailure) {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
@@ -73,7 +73,7 @@ class _LoginFormState extends State<LoginForm> {
       },
       child: BlocBuilder(
         bloc: _loginBloc,
-        builder: (BuildContext context, MyFormState state) {
+        builder: (BuildContext context, LoginState state) {
           return Padding(
             padding: EdgeInsets.all(20.0),
             child: Form(

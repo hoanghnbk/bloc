@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_firebase_login/forms/forms.dart';
+import 'package:flutter_firebase_login/register/register.dart';
 
 class RegisterForm extends StatefulWidget {
   State<RegisterForm> createState() => _RegisterFormState();
@@ -15,7 +15,7 @@ class _RegisterFormState extends State<RegisterForm> {
   bool get isPopulated =>
       _emailController.text.isNotEmpty && _passwordController.text.isNotEmpty;
 
-  bool isRegisterButtonEnabled(MyFormState state) {
+  bool isRegisterButtonEnabled(RegisterState state) {
     return state.isFormValid && isPopulated && !state.isSubmitting;
   }
 
@@ -31,7 +31,7 @@ class _RegisterFormState extends State<RegisterForm> {
   Widget build(BuildContext context) {
     return BlocListener(
       bloc: _registerBloc,
-      listener: (BuildContext context, MyFormState state) {
+      listener: (BuildContext context, RegisterState state) {
         if (state.isSubmitting) {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
@@ -69,7 +69,7 @@ class _RegisterFormState extends State<RegisterForm> {
       },
       child: BlocBuilder(
         bloc: _registerBloc,
-        builder: (BuildContext context, MyFormState state) {
+        builder: (BuildContext context, RegisterState state) {
           return Padding(
             padding: EdgeInsets.all(20),
             child: Form(

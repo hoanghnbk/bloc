@@ -2,16 +2,16 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:flutter_firebase_login/forms/forms.dart';
-import 'package:flutter_firebase_login/authentication/authentication.dart';
+import 'package:flutter_firebase_login/authentication_bloc/bloc.dart';
 import 'package:flutter_firebase_login/user_repository.dart';
+import 'package:flutter_firebase_login/register/register.dart';
 import 'package:flutter_firebase_login/validators.dart';
 
-class LoginBloc extends Bloc<MyFormEvent, MyFormState> {
-  UserRepository _userRepository;
+class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
+  final UserRepository _userRepository;
   AuthenticationBloc _authenticationBloc;
 
-  LoginBloc({
+  RegisterBloc({
     @required UserRepository userRepository,
     @required AuthenticationBloc authenticationBloc,
   })  : assert(userRepository != null),
@@ -20,14 +20,14 @@ class LoginBloc extends Bloc<MyFormEvent, MyFormState> {
         _authenticationBloc = authenticationBloc;
 
   @override
-  MyFormState get initialState => MyFormState.empty();
+  RegisterState get initialState => RegisterState.empty();
 
   @override
-  Stream<MyFormState> transform(
-    Stream<MyFormEvent> events,
-    Stream<MyFormState> Function(MyFormEvent event) next,
+  Stream<RegisterState> transform(
+    Stream<RegisterEvent> events,
+    Stream<RegisterState> Function(RegisterEvent event) next,
   ) {
-    final observableStream = events as Observable<MyFormEvent>;
+    final observableStream = events as Observable<RegisterEvent>;
     final nonDebounceStream = observableStream.where((event) {
       return (event is! EmailChanged && event is! PasswordChanged);
     });
@@ -38,54 +38,44 @@ class LoginBloc extends Bloc<MyFormEvent, MyFormState> {
   }
 
   @override
-  Stream<MyFormState> mapEventToState(MyFormEvent event) async* {
+  Stream<RegisterState> mapEventToState(
+    RegisterEvent event,
+  ) async* {
     if (event is EmailChanged) {
       yield* _mapEmailChangedToState(event.email);
     } else if (event is PasswordChanged) {
       yield* _mapPasswordChangedToState(event.password);
-    } else if (event is LoginWithGooglePressed) {
-      yield* _mapLoginWithGooglePressedToState();
-    } else if (event is LoginWithCredentialsPressed) {
-      yield* _mapLoginWithCredentialsPressedToState(
-        email: event.email,
-        password: event.password,
-      );
+    } else if (event is Submitted) {
+      yield* _mapFormSubmittedToState(event.email, event.password);
     }
   }
 
-  Stream<MyFormState> _mapEmailChangedToState(String email) async* {
+  Stream<RegisterState> _mapEmailChangedToState(String email) async* {
     yield currentState.update(
       isEmailValid: Validators.isValidEmail(email),
     );
   }
 
-  Stream<MyFormState> _mapPasswordChangedToState(String password) async* {
+  Stream<RegisterState> _mapPasswordChangedToState(String password) async* {
     yield currentState.update(
       isPasswordValid: Validators.isValidPassword(password),
     );
   }
 
-  Stream<MyFormState> _mapLoginWithGooglePressedToState() async* {
-    try {
-      await _userRepository.signInWithGoogle();
-      _authenticationBloc.dispatch(LoggedIn());
-      yield MyFormState.success();
-    } catch (_) {
-      yield MyFormState.failure();
-    }
-  }
-
-  Stream<MyFormState> _mapLoginWithCredentialsPressedToState({
+  Stream<RegisterState> _mapFormSubmittedToState(
     String email,
     String password,
-  }) async* {
-    yield MyFormState.loading();
+  ) async* {
+    yield RegisterState.loading();
     try {
-      await _userRepository.signInWithCredentials(email, password);
+      await _userRepository.signUp(
+        email: email,
+        password: password,
+      );
       _authenticationBloc.dispatch(LoggedIn());
-      yield MyFormState.success();
+      yield RegisterState.success();
     } catch (_) {
-      yield MyFormState.failure();
+      yield RegisterState.failure();
     }
   }
 }
